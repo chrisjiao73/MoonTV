@@ -4,6 +4,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 
+import { TV_CATEGORIES } from '@/lib/tv-categories';
+
 interface SelectorOption {
   label: string;
   value: string;
@@ -59,12 +61,7 @@ const DoubanSelector: React.FC<DoubanSelectorProps> = ({
   // 电视剧选择器选项
   const tvOptions: SelectorOption[] = [
     { label: '全部', value: 'tv' },
-    { label: '国产', value: 'tv_domestic' },
-    { label: '欧美', value: 'tv_american' },
-    { label: '日本', value: 'tv_japanese' },
-    { label: '韩国', value: 'tv_korean' },
-    { label: '动漫', value: 'tv_animation' },
-    { label: '纪录片', value: 'tv_documentary' },
+    ...TV_CATEGORIES.map(({ shortLabel: label, value }) => ({ label, value })),
   ];
 
   // 综艺选择器选项

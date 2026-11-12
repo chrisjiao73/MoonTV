@@ -7,6 +7,7 @@ import { Suspense } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { getDoubanCategories } from '@/lib/douban.client';
+import { TV_CATEGORIES } from '@/lib/tv-categories';
 import { DoubanItem } from '@/lib/types';
 
 import DoubanCardSkeleton from '@/components/DoubanCardSkeleton';
@@ -14,10 +15,33 @@ import DoubanSelector from '@/components/DoubanSelector';
 import PageLayout from '@/components/PageLayout';
 import VideoCard from '@/components/VideoCard';
 
-function DoubanPageClient() {
+function DoubanCategoryRoute() {
   const searchParams = useSearchParams();
+  const rawType = searchParams.get('type');
+  const type = rawType === 'tv' || rawType === 'show' ? rawType : 'movie';
+  const tag = searchParams.get('tag');
+  const tvCategory =
+    TV_CATEGORIES.find(({ value }) => value === tag)?.value ?? 'tv';
+
+  // 切换侧栏分类时重置分页，旧分类的响应留在已卸载的页面中。
+  return (
+    <DoubanPageClient
+      key={`${type}:${tvCategory}`}
+      type={type}
+      tvCategory={tvCategory}
+    />
+  );
+}
+
+function DoubanPageClient({
+  type,
+  tvCategory,
+}: {
+  type: 'movie' | 'tv' | 'show';
+  tvCategory: string;
+}) {
   const [doubanData, setDoubanData] = useState<DoubanItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -26,15 +50,13 @@ function DoubanPageClient() {
   const loadingRef = useRef<HTMLDivElement>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const type = searchParams.get('type') || 'movie';
-
-  // 选择器状态 - 完全独立，不依赖URL参数
+  // 侧栏链接使用 tag 指定电视剧的初始分类。
   const [primarySelection, setPrimarySelection] = useState<string>(() => {
     return type === 'movie' ? '热门' : '';
   });
   const [secondarySelection, setSecondarySelection] = useState<string>(() => {
     if (type === 'movie') return '全部';
-    if (type === 'tv') return 'tv';
+    if (type === 'tv') return tvCategory;
     if (type === 'show') return 'show';
     return '全部';
   });
@@ -48,37 +70,6 @@ function DoubanPageClient() {
 
     return () => clearTimeout(timer);
   }, []); // 只在组件挂载时执行一次
-
-  // type变化时立即重置selectorsReady（最高优先级）
-  useEffect(() => {
-    setSelectorsReady(false);
-    setLoading(true); // 立即显示loading状态
-  }, [type]);
-
-  // 当type变化时重置选择器状态
-  useEffect(() => {
-    // 批量更新选择器状态
-    if (type === 'movie') {
-      setPrimarySelection('热门');
-      setSecondarySelection('全部');
-    } else if (type === 'tv') {
-      setPrimarySelection('');
-      setSecondarySelection('tv');
-    } else if (type === 'show') {
-      setPrimarySelection('');
-      setSecondarySelection('show');
-    } else {
-      setPrimarySelection('');
-      setSecondarySelection('全部');
-    }
-
-    // 使用短暂延迟确保状态更新完成后标记选择器准备好
-    const timer = setTimeout(() => {
-      setSelectorsReady(true);
-    }, 50);
-
-    return () => clearTimeout(timer);
-  }, [type]);
 
   // 生成骨架屏数据
   const skeletonData = Array.from({ length: 25 }, (_, index) => index);
@@ -118,12 +109,13 @@ function DoubanPageClient() {
       if (data.code === 200) {
         setDoubanData(data.list);
         setHasMore(data.list.length === 25);
-        setLoading(false);
       } else {
         throw new Error(data.message || '获取数据失败');
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   }, [type, primarySelection, secondarySelection, getRequestParams]);
 
@@ -254,6 +246,7 @@ function DoubanPageClient() {
   const getActivePath = () => {
     const params = new URLSearchParams();
     if (type) params.set('type', type);
+    if (type === 'tv' && tvCategory !== 'tv') params.set('tag', tvCategory);
 
     const queryString = params.toString();
     const activePath = `/douban${queryString ? `?${queryString}` : ''}`;
@@ -349,7 +342,7 @@ function DoubanPageClient() {
 export default function DoubanPage() {
   return (
     <Suspense>
-      <DoubanPageClient />
+      <DoubanCategoryRoute />
     </Suspense>
   );
 }

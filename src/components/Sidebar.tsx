@@ -1,6 +1,18 @@
 'use client';
 
-import { Clover, Film, Home, Menu, Search, Tv } from 'lucide-react';
+import {
+  Clapperboard,
+  Clover,
+  Film,
+  Globe,
+  Home,
+  MapPin,
+  Menu,
+  Search,
+  Sparkles,
+  Tv,
+  Video,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -12,7 +24,18 @@ import {
   useState,
 } from 'react';
 
+import { TV_CATEGORIES } from '@/lib/tv-categories';
+
 import { useSite } from './SiteProvider';
+
+const categoryIcons = {
+  tv_domestic: MapPin,
+  tv_american: Globe,
+  tv_japanese: Clapperboard,
+  tv_korean: Video,
+  tv_animation: Sparkles,
+  tv_documentary: Film,
+};
 
 interface SidebarContextType {
   isCollapsed: boolean;
@@ -138,6 +161,11 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
       label: '综艺',
       href: '/douban?type=show',
     },
+    ...TV_CATEGORIES.map(({ label, value }) => ({
+      icon: categoryIcons[value],
+      label,
+      href: `/douban?type=tv&tag=${value}`,
+    })),
   ];
 
   return (
@@ -219,7 +247,15 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
             </nav>
 
             {/* 菜单项 */}
-            <div className='flex-1 overflow-y-auto px-2 pt-4'>
+            <nav
+              aria-label='影视分类'
+              className='flex-1 overflow-y-auto px-2 pt-4 pb-3'
+            >
+              {!isCollapsed && (
+                <p className='px-4 pb-2 text-xs font-semibold text-gray-500 dark:text-gray-400'>
+                  影视分类
+                </p>
+              )}
               <div className='space-y-1'>
                 {menuItems.map((item) => {
                   // 检查当前路径是否匹配这个菜单项
@@ -241,6 +277,9 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
                     <Link
                       key={item.label}
                       href={item.href}
+                      aria-label={item.label}
+                      aria-current={isActive ? 'page' : undefined}
+                      title={isCollapsed ? item.label : undefined}
                       onClick={() => setActive(item.href)}
                       data-active={isActive}
                       className={`group flex items-center rounded-lg px-2 py-2 pl-4 text-sm text-gray-700 hover:bg-gray-100/30 hover:text-green-600 data-[active=true]:bg-green-500/20 data-[active=true]:text-green-700 transition-colors duration-200 min-h-[40px] dark:text-gray-300 dark:hover:text-green-400 dark:data-[active=true]:bg-green-500/10 dark:data-[active=true]:text-green-400 ${
@@ -259,7 +298,7 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
                   );
                 })}
               </div>
-            </div>
+            </nav>
           </div>
         </aside>
         <div
