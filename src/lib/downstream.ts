@@ -17,12 +17,14 @@ interface ApiSearchItem {
 
 export async function searchFromApi(
   apiSite: ApiSite,
-  query: string
+  query: string | null
 ): Promise<SearchResult[]> {
   try {
     const apiBaseUrl = apiSite.api;
     const apiUrl =
-      apiBaseUrl + API_CONFIG.search.path + encodeURIComponent(query);
+      query === null
+        ? `${apiBaseUrl}?ac=videolist&pg=1`
+        : apiBaseUrl + API_CONFIG.search.path + encodeURIComponent(query);
     const apiName = apiSite.name;
 
     // 添加超时处理
@@ -89,6 +91,8 @@ export async function searchFromApi(
         douban_id: item.vod_douban_id,
       };
     });
+
+    if (query === null) return results;
 
     const config = await getConfig();
     const MAX_SEARCH_PAGES: number = config.SiteConfig.SearchDownstreamMaxPage;

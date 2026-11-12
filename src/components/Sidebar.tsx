@@ -8,6 +8,7 @@ import {
   Home,
   MapPin,
   Menu,
+  Moon,
   Search,
   Sparkles,
   Tv,
@@ -166,6 +167,8 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
       label,
       href: `/douban?type=tv&tag=${value}`,
     })),
+    { icon: Clapperboard, label: '短剧', href: '/catalog?category=short' },
+    { icon: Moon, label: '午夜剧场', href: '/catalog?category=midnight' },
   ];
 
   return (
