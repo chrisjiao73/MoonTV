@@ -107,6 +107,15 @@ export default function VideoCard({
   );
   const actualEpisodes = aggregateData?.mostFrequentEpisodes ?? episodes;
   const actualYear = aggregateData?.first.year ?? year;
+  const posterUrl =
+    from === 'douban'
+      ? `/api/source-poster?${new URLSearchParams({
+          title: actualTitle,
+          id: douban_id ?? '',
+          year: actualYear ?? '',
+          type,
+        })}`
+      : processImageUrl(actualPoster);
   const actualQuery = query || '';
   const actualSearchType = isAggregate
     ? aggregateData?.first.episodes?.length === 1
@@ -280,7 +289,7 @@ export default function VideoCard({
         {!isLoading && <ImagePlaceholder aspectRatio='aspect-[2/3]' />}
         {/* 图片 */}
         <Image
-          src={processImageUrl(actualPoster)}
+          src={posterUrl}
           alt={actualTitle}
           fill
           className='object-cover'
