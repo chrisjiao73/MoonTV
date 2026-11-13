@@ -35,7 +35,12 @@ export function processImageUrl(originalUrl: string): string {
   if (!originalUrl) return originalUrl;
 
   const proxyUrl = getImageProxyUrl();
-  if (!proxyUrl) return originalUrl;
+  if (!proxyUrl) {
+    if (/^https:\/\/img\d+\.doubanio\.com\/view\//i.test(originalUrl)) {
+      return `/api/douban-poster?url=${encodeURIComponent(originalUrl)}`;
+    }
+    return originalUrl;
+  }
 
   return `${proxyUrl}${encodeURIComponent(originalUrl)}`;
 }
