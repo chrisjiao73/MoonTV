@@ -26,7 +26,10 @@ export default async function CatalogPage({
       ? isMidnight
       : !isMidnight && /短剧/.test(site.name);
   });
-  const selected = sources.find((site) => site.key === source) ?? sources[0];
+  const selected =
+    sources.find((site) => site.key === source) ??
+    sources.find((site) => site.key === 'changzhang_short') ??
+    sources[0];
   const videos = selected ? await searchFromApi(selected, null) : [];
 
   return (
