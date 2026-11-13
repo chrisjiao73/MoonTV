@@ -285,7 +285,14 @@ export default function VideoCard({
           fill
           className='object-cover'
           referrerPolicy='no-referrer'
-          onLoadingComplete={() => setIsLoading(true)}
+          onError={(event) => {
+            event.currentTarget.style.visibility = 'hidden';
+            setIsLoading(false);
+          }}
+          onLoadingComplete={(image) => {
+            image.style.visibility = '';
+            setIsLoading(true);
+          }}
         />
 
         {/* 悬浮遮罩 */}
